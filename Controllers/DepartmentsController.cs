@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Bangazon_RedJags.Models;
 using EFWorkforce.Data;
+using EFWorkforce.Models.ViewModels;
 
 namespace EFWorkforce.Controllers
 {
@@ -22,7 +23,14 @@ namespace EFWorkforce.Controllers
         // GET: Departments
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Department.ToListAsync());
+            var departments = await _context.Department.Select(d => new DepartmentIndexViewModel()
+            {
+                Id = d.Id,
+                Name = d.Name,
+                Budget = d.Budget,
+                EmployeeCount = d.Employees.Count()
+            }).ToListAsync();
+            return View(departments);
         }
 
         // GET: Departments/Details/5
@@ -34,6 +42,7 @@ namespace EFWorkforce.Controllers
             }
 
             var department = await _context.Department
+                .Include(d => d.Employees)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (department == null)
             {
